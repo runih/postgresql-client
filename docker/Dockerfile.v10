@@ -1,0 +1,6 @@
+FROM alpine:3.8
+RUN apk --no-cache add postgresql-client
+COPY inputrc /root/.inputrc
+COPY psqlrc /root/.psqlrc
+COPY entrypoint.sh /entrypoint.sh
+ENTRYPOINT [ "/entrypoint.sh" ]

@@ -1,0 +1,8 @@
+\set QUIET 1
+\pset linestyle unicode
+\pset border 2
+\set COMP_KEYWORD_CASE upper
+\pset pager off
+\timing
+\pset format wrapped
+\pset null '<null>'
