@@ -17,9 +17,15 @@ case "$version" in
       fi
       ln -s "$scriptpath/command.sh" "$HOME/bin/$command"
     ;;
+  psql|pg_dump|pg_dumpall|pg_restore)
+      if [ -x "$HOME/bin/$command" ];then
+        echo "Link exists for $command!"
+        exit 1
+      fi
+      ln -s "$scriptpath/command.sh" "$HOME/bin/$command"
+    ;;
   *)
     echo "Don't support version: $version"
     exit 2
     ;;
 esac
-
