@@ -36,7 +36,7 @@ Type the following to see if it is the right version:
 psql.10 --version
 ```
 
-It is also possible to run another version without a version symlink but instead using PG_VERSION
+It is also possible to run another version with out a version symlink by using the PG_VERSION environment variable.
 
 ```sh
 PG_VERSION=13 psql --version
