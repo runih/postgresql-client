@@ -41,3 +41,9 @@ It is also possible to run another version with out a version symlink by using t
 ```sh
 PG_VERSION=13 psql --version
 ```
+
+## Environment variables
+
+- **PG_VERSION** Specify major version
+- **PG_NETWORK** Specify a docker network to connect to
+- **PG_PASS** Specify a `pgpass` file that will be mounted as [~/.pgpass](~/.pgass.md)
