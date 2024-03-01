@@ -1,5 +1,5 @@
-FROM alpine
-RUN apk --no-cache add postgresql11-client
+FROM alpine:3.9
+RUN apk --no-cache add postgresql-client
 COPY inputrc /root/.inputrc
 COPY psqlrc /root/.psqlrc
 COPY entrypoint.sh /entrypoint.sh
