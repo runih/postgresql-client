@@ -29,7 +29,7 @@ case "$version" in
     ;;
 esac
 
-docker run -i"$TERMINAL" --rm --network "$PG_NETWORK" "$MOUNT_PGPASS" okkara.net/postgresql"$PG_VERSION"-client "$command" "$@"
+docker run -i"$TERMINAL" --rm --network "$PG_NETWORK" $MOUNT_PGPASS okkara.net/postgresql"$PG_VERSION"-client "$command" "$@"
 error=$?
 if [ $error = 125 ];then
   echo "$error: Docker image missing"
@@ -41,5 +41,5 @@ if [ $error = 125 ];then
   echo "Dockerpath: $dockerpath"
   cd "$dockerpath" || exit 1
   docker build -t okkara.net/postgresql"$PG_VERSION"-client -f Dockerfile.v"$PG_VERSION" .
-  docker run -i"$TERMINAL" --rm --network "$PG_NETWORK" "$MOUNT_PGPASS" okkara.net/postgresql"$PG_VERSION"-client "$command" "$@"
+  docker run -i"$TERMINAL" --rm --network "$PG_NETWORK" $MOUNT_PGPASS okkara.net/postgresql"$PG_VERSION"-client "$command" "$@"
 fi
