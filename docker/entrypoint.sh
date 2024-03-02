@@ -1,7 +1,12 @@
 #!/usr/bin/env sh
 
+# Change to the data directory
+cd /data
+
 command=$1
 shift
+
+export PSQL_EDITOR="/usr/bin/vim"
 
 # Postgresql Client v96 only supports psql
 if [ -f /PostgreSQL96.txt ] && [ "$command" != "psql" ];then

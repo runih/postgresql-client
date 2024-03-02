@@ -2,6 +2,7 @@
 \pset linestyle unicode
 \pset border 2
 \set COMP_KEYWORD_CASE upper
+\set PSQL_EDITOR "/usr/bin/vim"
 \pset pager off
 \timing
 \pset format wrapped

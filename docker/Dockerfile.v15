@@ -1,6 +1,9 @@
 FROM alpine
-RUN apk --no-cache add postgresql15-client
+RUN apk --no-cache add postgresql15-client bash git vim
+RUN mkdir /data
 COPY inputrc /root/.inputrc
 COPY psqlrc /root/.psqlrc
 COPY entrypoint.sh /entrypoint.sh
+COPY vimrc /root/.vimrc
+COPY vim/ /root/.vim/
 ENTRYPOINT [ "/entrypoint.sh" ]
