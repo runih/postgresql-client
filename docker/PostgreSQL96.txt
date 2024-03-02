@@ -1,0 +1,4 @@
+
+!!! SORRY !!!
+
+postgresql-client v96 only supports psql =o/

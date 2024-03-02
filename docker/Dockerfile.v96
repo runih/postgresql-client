@@ -1,6 +1,8 @@
 FROM alpine:3.6
 RUN apk --no-cache add postgresql-client
+RUN mkdir /data
 COPY inputrc /root/.inputrc
 COPY psqlrc /root/.psqlrc
 COPY entrypoint.sh /entrypoint.sh
+COPY PostgreSQL96.txt /PostgreSQL96.txt
 ENTRYPOINT [ "/entrypoint.sh" ]
