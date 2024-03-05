@@ -4,6 +4,4 @@ RUN mkdir /data
 COPY inputrc /root/.inputrc
 COPY psqlrc /root/.psqlrc
 COPY entrypoint.sh /entrypoint.sh
-COPY vimrc /root/.vimrc
-COPY vim/ /root/.vim/
 ENTRYPOINT [ "/entrypoint.sh" ]
