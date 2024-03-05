@@ -2,6 +2,12 @@
 
 SCRIPT_FOLDER=$(dirname "$(readlink -f "$0")")
 
+if [ "$1" = "--update" ];then
+  cd "$SCRIPT_FOLDER" || exit 1
+  git pull
+  exit 0
+fi
+
 if [ -z "$PG_VERSION" ];then
   PG_VERSION=16
 fi
