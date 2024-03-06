@@ -77,7 +77,7 @@ if [ "$PG_DATA" != "" ];then
   MOUNT_DATA="-v$PG_DATA:/data"
 fi
 
-docker run -i"$TERMINAL" --rm --network "$PG_NETWORK" -v"$SOURCE_FOLDER/docker/vimrc:/root/.vimrc" -v"$SOURCE_FOLDER/../docker/vim:/root/.vim" $MOUNT_DATA $MOUNT_PGPASS okkara.net/postgresql"$PG_VERSION"-client "$command" "$@"
+docker run -i"$TERMINAL" --rm --network "$PG_NETWORK" -v"$SOURCE_FOLDER/docker/vimrc:/root/.vimrc" -v"$SOURCE_FOLDER/docker/vim:/root/.vim" $MOUNT_DATA $MOUNT_PGPASS okkara.net/postgresql"$PG_VERSION"-client "$command" "$@"
 error=$?
 if [ $error = 125 ];then
   echo "$error: Docker image missing"
@@ -89,5 +89,5 @@ if [ $error = 125 ];then
   echo "Dockerpath: $dockerpath"
   cd "$dockerpath" || exit 1
   docker build -t okkara.net/postgresql"$PG_VERSION"-client -f Dockerfile.v"$PG_VERSION" .
-  docker run -i"$TERMINAL" --rm --network "$PG_NETWORK" -v"$SOURCE_FOLDER/../docker/vimrc:/root/.vimrc" -v"$SOURCE_FOLDER/../docker/vim:/root/.vim" $MOUNT_DATA $MOUNT_PGPASS okkara.net/postgresql"$PG_VERSION"-client "$command" "$@"
+  docker run -i"$TERMINAL" --rm --network "$PG_NETWORK" -v"$SOURCE_FOLDER/docker/vimrc:/root/.vimrc" -v"$SOURCE_FOLDER/docker/vim:/root/.vim" $MOUNT_DATA $MOUNT_PGPASS okkara.net/postgresql"$PG_VERSION"-client "$command" "$@"
 fi
