@@ -42,8 +42,21 @@ It is also possible to run another version with out a version symlink by using t
 PG_VERSION=13 psql --version
 ```
 
+## Update
+
+To update the psql wrapper run the following command:
+
+```sh
+psql --update
+```
+
+This will pull the latest from github. If there is an update to the images the current images will be deleted.
+
+:exclamation: Make sure you don't have a psql running while doing the update!
+
 ## Environment variables
 
 - **PG_VERSION** Specify major version
 - **PG_NETWORK** Specify a docker network to connect to
 - **PG_PASS** Specify a `pgpass` file that will be mounted as [~/.pgpass](~/.pgass.md)
+- **PG_DATA** Specify a data directory
