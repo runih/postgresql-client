@@ -58,5 +58,5 @@ This will pull the latest from github. If there is an update to the images the c
 
 - **PG_VERSION** Specify major version
 - **PG_NETWORK** Specify a docker network to connect to
-- **PG_PASS** Specify a `pgpass` file that will be mounted as [~/.pgpass](~/.pgass.md)
+- **PG_PASS** Specify a `pgpass` file that will be mounted as ~/.pgpass
 - **PG_DATA** Specify a data directory
