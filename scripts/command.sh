@@ -2,6 +2,64 @@
 
 SCRIPT_FOLDER=$(dirname "$(readlink -f "$0")")
 SOURCE_FOLDER=$(readlink -f "$SCRIPT_FOLDER/../.")
+if [ -z "$PG_ENVIRONMENT_COLORS" ];then
+  PG_ENVIRONMENT_COLORS=(
+    ["dev"]="bg=#183548 fg=#9df397"
+    ["staging"]="bg=#0000dd fg=#dddd00"
+    ["prod"]="bg=#990000 fg=#ffffff"
+  )
+fi
+
+if [ -z "$PG_HOST_REGEX" ];then
+  PG_HOST_REGEX='s|^([a-z]+)\..*|\1|'
+fi
+
+HOST=""
+for i in "$@"
+do
+  if [ "$HOST" != "" ];then
+    HOST=$i
+    break
+  fi
+  case $i in
+    --host*)
+      HOST=$(echo "$i" | cut -f2 -d=)
+      break
+    ;;
+    -h*)
+      if [ "$i" != "-h" ];then
+        HOST="${i/-h/}"
+        break
+      else
+        HOST="SET HOST"
+      fi
+    ;;
+  esac
+  echo "$i"
+done
+
+echo "Host: $HOST"
+ENV=$(echo "$HOST" | sed -E "$PG_HOST_REGEX")
+echo "Env: $ENV"
+for e in "${!PG_ENVIRONMENT_COLORS[@]}";do
+  echo "$e = ${PG_ENVIRONMENT_COLORS[$e]}"
+done
+COLORS=${PG_ENVIRONMENT_COLORS[$ENV]}
+echo "Colors: $COLORS"
+if [ "$COLORS" = "" ];then
+  COLORS='bg=#183548 fg=#9df397'
+fi
+
+change_color() {
+  # change the color of the tmux pane
+  if [ "$TMUX_PANE" != "" ]; then
+    if [ "$1" = "" ]; then
+      tmux select-pane -t "$TMUX_PANE" -P 'bg=default fg=default'
+    else
+      tmux select-pane -t "$TMUX_PANE" -P "$1 $2"
+    fi
+  fi
+}
 
 if [ "$1" = "--update" ];then
   cd "$SOURCE_FOLDER" || exit 1
@@ -77,6 +135,7 @@ if [ "$PG_DATA" != "" ];then
   MOUNT_DATA="-v$PG_DATA:/data"
 fi
 
+change_color "$COLORS"
 docker run -i"$TERMINAL" --rm --network "$PG_NETWORK" -v"$SOURCE_FOLDER/docker/vimrc:/root/.vimrc" -v"$SOURCE_FOLDER/docker/vim:/root/.vim" $MOUNT_DATA $MOUNT_PGPASS okkara.net/postgresql"$PG_VERSION"-client "$command" "$@"
 error=$?
 if [ $error = 125 ];then
@@ -91,3 +150,5 @@ if [ $error = 125 ];then
   docker build -t okkara.net/postgresql"$PG_VERSION"-client -f Dockerfile.v"$PG_VERSION" .
   docker run -i"$TERMINAL" --rm --network "$PG_NETWORK" -v"$SOURCE_FOLDER/docker/vimrc:/root/.vimrc" -v"$SOURCE_FOLDER/docker/vim:/root/.vim" $MOUNT_DATA $MOUNT_PGPASS okkara.net/postgresql"$PG_VERSION"-client "$command" "$@"
 fi
+change_color
+
