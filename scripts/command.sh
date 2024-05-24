@@ -48,6 +48,12 @@ else
   MOUNT_PGHISTORY="-v$PG_HISTORY:/root/.psql_history"
 fi
 
+if [ -z "$PG_CERTFOLDER" ];then
+  MOUNT_PGCERTFOLDER=""
+else
+  MOUNT_PGCERTFOLDER="-V $PG_CERTFOLDER:/certs"
+fi
+
 MOUNT_DATA=""
 
 if [ -t 0 ];then
@@ -83,7 +89,7 @@ if [ "$PG_DATA" != "" ];then
   MOUNT_DATA="-v$PG_DATA:/data"
 fi
 
-docker run -i"$TERMINAL" --rm --network "$PG_NETWORK" -v"$SOURCE_FOLDER/docker/vimrc:/root/.vimrc" -v"$SOURCE_FOLDER/docker/vim:/root/.vim" $MOUNT_DATA $MOUNT_PGPASS $MOUNT_PGHISTORY okkara.net/postgresql"$PG_VERSION"-client "$command" "$@"
+docker run -i"$TERMINAL" --rm --network "$PG_NETWORK" -v"$SOURCE_FOLDER/docker/vimrc:/root/.vimrc" -v"$SOURCE_FOLDER/docker/vim:/root/.vim" $MOUNT_DATA $MOUNT_PGPASS $MOUNT_PGHISTORY $MOUNT_PGCERTFOLDER okkara.net/postgresql"$PG_VERSION"-client "$command" "$@"
 error=$?
 if [ $error = 125 ];then
   echo "$error: Docker image missing"

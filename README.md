@@ -4,7 +4,7 @@
 
 Docker needs to be install!
 
-It is also recommended to have hava ~/bin in your path
+It is also recommended to have ~/bin in your path
 
 ```sh
 export PATH=~/bin:$PATH
@@ -61,3 +61,4 @@ This will pull the latest from github. If there is an update to the images the c
 - **PG_PASS** Specify a `pgpass` file that will be mounted as ~/.pgpass
 - **PG_DATA** Specify a data directory
 - **PG_HISTORY** Specify the .psql_history file that should be mounted as ~/.psql_history
+- **PG_CERTFOLDER** Specify where the certificates are located
