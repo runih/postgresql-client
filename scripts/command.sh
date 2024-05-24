@@ -56,6 +56,30 @@ fi
 
 MOUNT_DATA=""
 
+if [ -z "PG_SSLCERT" ];then
+  ENV_PGSSLCERT=""
+else
+  ENV_PGSSLCERT="-e PGSSLCERT=$PG_SSLCERT"
+fi
+
+if [ -z "PG_SSLKEY" ];then
+  ENV_PGSSLKEY=""
+else
+  ENV_PGSSLKEY="-e PGSSLKEY=$PG_SSLKEY"
+fi
+
+if [ -z "PG_SSLROOTCERT" ];then
+  ENV_PGSSLROOTCERT=""
+else
+  ENV_PGSSLROOTCERT="-e PGSSLROOTCERT=$PG_SSLROOTCERT"
+fi
+
+
+# Docker mounting points
+MOUNTS="$MOUNT_DATA $MOUNT_PGPASS $MOUNT_PGHISTORY $MOUNT_PGCERTFOLDER"
+# Docker environments
+ENVS="$ENV_PGSSLCERT $ENV_PGSSLKEY $ENV_PGSSLROOTCERT"
+
 if [ -t 0 ];then
   TERMINAL="t"
 else
@@ -89,7 +113,7 @@ if [ "$PG_DATA" != "" ];then
   MOUNT_DATA="-v$PG_DATA:/data"
 fi
 
-docker run -i"$TERMINAL" --rm --network "$PG_NETWORK" -v"$SOURCE_FOLDER/docker/vimrc:/root/.vimrc" -v"$SOURCE_FOLDER/docker/vim:/root/.vim" $MOUNT_DATA $MOUNT_PGPASS $MOUNT_PGHISTORY $MOUNT_PGCERTFOLDER okkara.net/postgresql"$PG_VERSION"-client "$command" "$@"
+docker run -i"$TERMINAL" --rm --network "$PG_NETWORK" -v"$SOURCE_FOLDER/docker/vimrc:/root/.vimrc" -v"$SOURCE_FOLDER/docker/vim:/root/.vim" $MOUNTS okkara.net/postgresql"$PG_VERSION"-client "$command" "$@"
 error=$?
 if [ $error = 125 ];then
   echo "$error: Docker image missing"
@@ -101,5 +125,5 @@ if [ $error = 125 ];then
   echo "Dockerpath: $dockerpath"
   cd "$dockerpath" || exit 1
   docker build -t okkara.net/postgresql"$PG_VERSION"-client -f Dockerfile.v"$PG_VERSION" .
-  docker run -i"$TERMINAL" --rm --network "$PG_NETWORK" -v"$SOURCE_FOLDER/docker/vimrc:/root/.vimrc" -v"$SOURCE_FOLDER/docker/vim:/root/.vim" $MOUNT_DATA $MOUNT_PGPASS $MOUNT_PGHISTORY okkara.net/postgresql"$PG_VERSION"-client "$command" "$@"
+  docker run -i"$TERMINAL" --rm --network "$PG_NETWORK" -v"$SOURCE_FOLDER/docker/vimrc:/root/.vimrc" -v"$SOURCE_FOLDER/docker/vim:/root/.vim" $MOUNTS $ENVS okkara.net/postgresql"$PG_VERSION"-client "$command" "$@"
 fi

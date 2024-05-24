@@ -62,3 +62,6 @@ This will pull the latest from github. If there is an update to the images the c
 - **PG_DATA** Specify a data directory
 - **PG_HISTORY** Specify the .psql_history file that should be mounted as ~/.psql_history
 - **PG_CERTFOLDER** Specify where the certificates are located
+- **PG_SSLCERT** Set the environment PGSSLCERT
+- **PG_SSLKEY** Set the environment PGSSLKEY
+- **PG_SSLROOTCERT** Set the environment PGSSLROOTCERT
