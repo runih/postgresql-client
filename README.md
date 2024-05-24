@@ -60,3 +60,4 @@ This will pull the latest from github. If there is an update to the images the c
 - **PG_NETWORK** Specify a docker network to connect to
 - **PG_PASS** Specify a `pgpass` file that will be mounted as ~/.pgpass
 - **PG_DATA** Specify a data directory
+- **PG_HISTORY** Specify the .psql_history file that should be mounted as ~/.psql_history
