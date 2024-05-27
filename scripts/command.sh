@@ -74,12 +74,6 @@ else
   ENV_PGSSLROOTCERT="-e PGSSLROOTCERT=/certs/$PG_SSLROOTCERT"
 fi
 
-
-# Docker mounting points
-MOUNTS="$MOUNT_DATA $MOUNT_PGPASS $MOUNT_PGHISTORY $MOUNT_PGCERTFOLDER"
-# Docker environments
-ENVS="$ENV_PGSSLCERT $ENV_PGSSLKEY $ENV_PGSSLROOTCERT"
-
 if [ -t 0 ];then
   TERMINAL="t"
 else
@@ -112,6 +106,11 @@ esac
 if [ "$PG_DATA" != "" ];then
   MOUNT_DATA="-v$PG_DATA:/data"
 fi
+
+# Docker mounting points
+MOUNTS="$MOUNT_DATA $MOUNT_PGPASS $MOUNT_PGHISTORY $MOUNT_PGCERTFOLDER"
+# Docker environments
+ENVS="$ENV_PGSSLCERT $ENV_PGSSLKEY $ENV_PGSSLROOTCERT"
 
 docker run -i"$TERMINAL" --rm --network "$PG_NETWORK" -v"$SOURCE_FOLDER/docker/vimrc:/root/.vimrc" -v"$SOURCE_FOLDER/docker/vim:/root/.vim" $MOUNTS $ENVS okkara.net/postgresql"$PG_VERSION"-client "$command" "$@"
 error=$?
