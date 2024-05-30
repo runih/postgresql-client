@@ -3,6 +3,11 @@
 SCRIPT_FOLDER=$(dirname "$(readlink -f "$0")")
 SOURCE_FOLDER=$(readlink -f "$SCRIPT_FOLDER/../.")
 
+DOCKER_CONTEXT=""
+if [ "$PG_DOCKER_CONTEXT" != "" ];then
+  DOCKER_CONTEXT="--context $PG_DOCKER_CONTEXT"
+fi
+
 if [ "$1" = "--update" ];then
   cd "$SOURCE_FOLDER" || exit 1
   git pull
@@ -20,7 +25,7 @@ if [ "$1" = "--update" ];then
     )
     echo -n "Remove old images..."
     for image in "${IMAGES[@]}"; do
-      docker rmi "okkara.net/$image" > /dev/null 2>&1
+      docker $DOCKER_CONTEXT rmi "okkara.net/$image" > /dev/null 2>&1
     done
     echo "Done"
     echo -n "$SHA" > "$SOURCE_FOLDER/.sha.txt"
@@ -112,7 +117,7 @@ MOUNTS="$MOUNT_DATA $MOUNT_PGPASS $MOUNT_PGHISTORY $MOUNT_PGCERTFOLDER"
 # Docker environments
 ENVS="$ENV_PGSSLCERT $ENV_PGSSLKEY $ENV_PGSSLROOTCERT"
 
-docker run -i"$TERMINAL" --rm --network "$PG_NETWORK" -v"$SOURCE_FOLDER/docker/vimrc:/root/.vimrc" -v"$SOURCE_FOLDER/docker/vim:/root/.vim" $MOUNTS $ENVS okkara.net/postgresql"$PG_VERSION"-client "$command" "$@"
+docker $DOCKER_CONTEXT run -i"$TERMINAL" --rm --network "$PG_NETWORK" -v"$SOURCE_FOLDER/docker/vimrc:/root/.vimrc" -v"$SOURCE_FOLDER/docker/vim:/root/.vim" $MOUNTS $ENVS okkara.net/postgresql"$PG_VERSION"-client "$command" "$@"
 error=$?
 if [ $error = 125 ];then
   echo "$error: Docker image missing"
@@ -123,6 +128,6 @@ if [ $error = 125 ];then
   echo "Scriptpath: $scriptpath"
   echo "Dockerpath: $dockerpath"
   cd "$dockerpath" || exit 1
-  docker build -t okkara.net/postgresql"$PG_VERSION"-client -f Dockerfile.v"$PG_VERSION" .
-  docker run -i"$TERMINAL" --rm --network "$PG_NETWORK" -v"$SOURCE_FOLDER/docker/vimrc:/root/.vimrc" -v"$SOURCE_FOLDER/docker/vim:/root/.vim" $MOUNTS $ENVS okkara.net/postgresql"$PG_VERSION"-client "$command" "$@"
+  docker $DOCKER_CONTEXT build -t okkara.net/postgresql"$PG_VERSION"-client -f Dockerfile.v"$PG_VERSION" .
+  docker $DOCKER_CONTEXT run -i"$TERMINAL" --rm --network "$PG_NETWORK" -v"$SOURCE_FOLDER/docker/vimrc:/root/.vimrc" -v"$SOURCE_FOLDER/docker/vim:/root/.vim" $MOUNTS $ENVS okkara.net/postgresql"$PG_VERSION"-client "$command" "$@"
 fi
