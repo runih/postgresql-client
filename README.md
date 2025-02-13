@@ -12,7 +12,7 @@ export PATH=~/bin:$PATH
 
 ## Version supported
 
-The following version of PostgreSQL is supported: 96, 10, 11, 12, 13, 14, 15, 16
+The following version of PostgreSQL is supported: 96, 10, 11, 12, 13, 14, 15, 16, 17
 
 ## How to create a symlink
 
@@ -24,7 +24,7 @@ scripts/create_link.sh psql
 
 This should create a link `~/bin/psql`
 
-The default version is 16. To create an older version enter the following:
+The default version is 17. To create an older version enter the following:
 
 ```sh
 scripts/create_link.sh psql.10
