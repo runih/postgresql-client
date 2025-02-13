@@ -22,6 +22,7 @@ if [ "$1" = "--update" ];then
       "postgresql14-client"
       "postgresql15-client"
       "postgresql16-client"
+      "postgresql17-client"
     )
     echo -n "Remove old images..."
     for image in "${IMAGES[@]}"; do
@@ -34,7 +35,7 @@ if [ "$1" = "--update" ];then
 fi
 
 if [ -z "$PG_VERSION" ];then
-  PG_VERSION=16
+  PG_VERSION=17
 fi
 
 if [ -z "$PG_NETWORK" ];then
@@ -88,7 +89,7 @@ fi
 command=$(basename "$0")
 version="${command##*.}"
 case "$version" in
-  96|10|11|12|13|14|15|16)
+  96|10|11|12|13|14|15|16|17)
     command="${command%.*}"
     PG_VERSION="$version"
     ;;
