@@ -122,7 +122,7 @@ docker $DOCKER_CONTEXT run -i"$TERMINAL" --rm --network "$PG_NETWORK" -v"$SOURCE
 error=$?
 if [ $error = 125 ];then
   echo "$error: Docker image missing"
-  script=$(readlink "$0")
+  script=$(readlink -f "$0")
   scriptpath=$(dirname "$script")
   dockerpath="$scriptpath/../docker"
   echo "Script: $script"
