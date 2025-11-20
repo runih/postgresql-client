@@ -12,7 +12,7 @@ export PATH=~/bin:$PATH
 
 ## Version supported
 
-The following version of PostgreSQL is supported: 96, 10, 11, 12, 13, 14, 15, 16, 17
+The following version of PostgreSQL is supported: 96, 10, 11, 12, 13, 14, 15, 16, 17, 18
 
 ## How to create a symlink
 

@@ -23,6 +23,7 @@ if [ "$1" = "--update" ];then
       "postgresql15-client"
       "postgresql16-client"
       "postgresql17-client"
+      "postgresql18-client"
     )
     echo -n "Remove old images..."
     for image in "${IMAGES[@]}"; do
@@ -35,7 +36,7 @@ if [ "$1" = "--update" ];then
 fi
 
 if [ -z "$PG_VERSION" ];then
-  PG_VERSION=17
+  PG_VERSION=18
 fi
 
 if [ -z "$PG_NETWORK" ];then
@@ -80,6 +81,11 @@ else
   ENV_PGSSLROOTCERT="-e PGSSLROOTCERT=/certs/$PG_SSLROOTCERT"
 fi
 
+if [ -z "PGSSLMODE" ]; then
+  PGSSLMODE="require"
+fi
+ENV_PGSSLMODE="-e PGSSLMODE=$PGSSLMODE"
+
 if [ -t 0 ];then
   TERMINAL="t"
 else
@@ -89,7 +95,7 @@ fi
 command=$(basename "$0")
 version="${command##*.}"
 case "$version" in
-  96|10|11|12|13|14|15|16|17)
+  96|10|11|12|13|14|15|16|17|18)
     command="${command%.*}"
     PG_VERSION="$version"
     ;;
@@ -116,7 +122,7 @@ fi
 # Docker mounting points
 MOUNTS="$MOUNT_DATA $MOUNT_PGPASS $MOUNT_PGHISTORY $MOUNT_PGCERTFOLDER"
 # Docker environments
-ENVS="$ENV_PGSSLCERT $ENV_PGSSLKEY $ENV_PGSSLROOTCERT"
+ENVS="$ENV_PGSSLCERT $ENV_PGSSLKEY $ENV_PGSSLROOTCERT $ENV_PGSSLMODE"
 
 docker $DOCKER_CONTEXT run -i"$TERMINAL" --rm --network "$PG_NETWORK" -v"$SOURCE_FOLDER/docker/vimrc:/root/.vimrc" -v"$SOURCE_FOLDER/docker/vim:/root/.vim" $MOUNTS $ENVS okkara.net/postgresql"$PG_VERSION"-client "$command" "$@"
 error=$?
