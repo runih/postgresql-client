@@ -81,7 +81,7 @@ else
   ENV_PGSSLROOTCERT="-e PGSSLROOTCERT=/certs/$PG_SSLROOTCERT"
 fi
 
-if [ -z "PGSSLMODE" ]; then
+if [ -z "PGSSLMODE" ] || [ "$PGSSLMODE" == "" ]; then
   PGSSLMODE="require"
 fi
 ENV_PGSSLMODE="-e PGSSLMODE=$PGSSLMODE"
