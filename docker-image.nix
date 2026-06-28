@@ -1,41 +1,53 @@
 { pkgs ? import <nixpkgs> {} }:
 
 let
-  pkgsLinux = pkgs.pkgsCross.aarch64-multiplatform;
+  isDarwin = pkgs.stdenv.isDarwin;
 
-  # Packages that cannot cross-compile from macOS (they execute target-arch
-  # binaries during build) are sourced from a native aarch64-linux evaluation
-  # so Nix fetches pre-built substitutes from cache.nixos.org instead.
-  pkgsLinuxNative = import <nixpkgs> {
-    system = "aarch64-linux";
-    config.allowUnsupportedSystem = true;
-  };
+  # Cross-compile to aarch64-linux when building from macOS.
+  # On Linux, build natively for the host architecture instead.
+  pkgsLinux = if isDarwin
+    then pkgs.pkgsCross.aarch64-multiplatform
+    else pkgs;
 
-  # The macOS tic tool (used during cross-compilation) emits hex-encoded
-  # subdirectory names (e.g. 78/xterm) to avoid case-collision on the
-  # case-insensitive macOS filesystem, but the cross-compiled Linux ncurses
-  # binary uses the standard single-char lookup (x/xterm).  This derivation
-  # converts the hex dirs to single-char dirs, skipping uppercase letters
-  # (A-Z) to stay collision-free on macOS — all common terminals start with
-  # a lowercase letter or digit anyway.
-  terminfo = pkgs.runCommand "terminfo" {} ''
-    mkdir -p $out/share/terminfo
-    for hexdir in ${pkgsLinux.ncurses}/share/terminfo/*/; do
-      hexname=$(basename "$hexdir")
-      # Only process 2-char hex names
-      echo "$hexname" | grep -qE '^[0-9a-f]{2}$' || continue
-      charcode=$((16#$hexname))
-      # Skip non-printable and uppercase A-Z (65-90) to avoid macOS conflicts
-      [ $charcode -lt 32 ] || [ $charcode -gt 126 ] && continue
-      [ $charcode -ge 65 ] && [ $charcode -le 90 ] && continue
-      char=$(printf "\\$(printf '%03o' $charcode)")
-      mkdir -p "$out/share/terminfo/$char"
-      for f in "$hexdir"*; do
-        [ -e "$f" ] || continue
-        cp -L "$f" "$out/share/terminfo/$char/" 2>/dev/null || cp "$f" "$out/share/terminfo/$char/"
+  # On macOS, packages that execute target-arch binaries during build
+  # are sourced from a native aarch64-linux evaluation so Nix fetches
+  # pre-built substitutes from cache.nixos.org instead.
+  # On Linux, native packages work fine.
+  pkgsLinuxNative = if isDarwin
+    then import <nixpkgs> {
+      system = "aarch64-linux";
+      config.allowUnsupportedSystem = true;
+    }
+    else pkgs;
+
+  # On macOS, the tic tool emits hex-encoded subdirectory names (e.g. 78/xterm)
+  # to avoid case-collision on the case-insensitive filesystem, but the
+  # cross-compiled Linux ncurses binary uses the standard single-char lookup
+  # (x/xterm). On Linux, terminfo is already in single-char format.
+  terminfo = pkgs.runCommand "terminfo" {} (
+    if isDarwin then ''
+      mkdir -p $out/share/terminfo
+      for hexdir in ${pkgsLinux.ncurses}/share/terminfo/*/; do
+        hexname=$(basename "$hexdir")
+        # Only process 2-char hex names
+        echo "$hexname" | grep -qE '^[0-9a-f]{2}$' || continue
+        charcode=$((16#$hexname))
+        # Skip non-printable and uppercase A-Z (65-90) to avoid macOS conflicts
+        [ $charcode -lt 32 ] || [ $charcode -gt 126 ] && continue
+        [ $charcode -ge 65 ] && [ $charcode -le 90 ] && continue
+        char=$(printf "\\$(printf '%03o' $charcode)")
+        mkdir -p "$out/share/terminfo/$char"
+        for f in "$hexdir"*; do
+          [ -e "$f" ] || continue
+          cp -L "$f" "$out/share/terminfo/$char/" 2>/dev/null || cp "$f" "$out/share/terminfo/$char/"
+        done
       done
-    done
-  '';
+    ''
+    else ''
+      mkdir -p $out/share/terminfo
+      cp -r ${pkgsLinux.ncurses}/share/terminfo/. $out/share/terminfo/
+    ''
+  );
 
   localeArchive = pkgs.runCommand "locale-archive" {} ''
     mkdir -p $out/share/locale
@@ -59,19 +71,24 @@ let
     cp ${./neovim/init.lua} $out/root/.config/nvim/init.lua
   '';
 
-  neovim = pkgs.runCommand "neovim-0.12.0" {
-    nativeBuildInputs = [ pkgs.patchelf ];
-  } ''
-    mkdir -p $out
-    tar -xzf ${pkgs.fetchurl {
-      url = "https://github.com/neovim/neovim/releases/download/v0.12.0/nvim-linux-arm64.tar.gz";
-      sha256 = "1cin6y5x6s6iy8y39mjbwhp6fdiv7vmv20n0x448yg7gw9xlw0l9";
-    }} --strip-components=1 -C $out
-    patchelf \
-      --set-interpreter "${pkgsLinux.glibc}/lib/ld-linux-aarch64.so.1" \
-      --set-rpath "${pkgsLinux.glibc}/lib:${pkgsLinux.stdenv.cc.cc.lib}/lib" \
-      $out/bin/nvim
-  '';
+  # On macOS, fetch and patch a pre-built aarch64 neovim tarball (cross-compiled
+  # binaries need their ELF interpreter set to the Nix-managed glibc path).
+  # On Linux, use nixpkgs' neovim built natively for the host architecture.
+  neovim = if isDarwin
+    then pkgs.runCommand "neovim-0.12.0" {
+      nativeBuildInputs = [ pkgs.patchelf ];
+    } ''
+      mkdir -p $out
+      tar -xzf ${pkgs.fetchurl {
+        url = "https://github.com/neovim/neovim/releases/download/v0.12.0/nvim-linux-arm64.tar.gz";
+        sha256 = "1cin6y5x6s6iy8y39mjbwhp6fdiv7vmv20n0x448yg7gw9xlw0l9";
+      }} --strip-components=1 -C $out
+      patchelf \
+        --set-interpreter "${pkgsLinux.glibc}/lib/ld-linux-aarch64.so.1" \
+        --set-rpath "${pkgsLinux.glibc}/lib:${pkgsLinux.stdenv.cc.cc.lib}/lib" \
+        $out/bin/nvim
+    ''
+    else pkgsLinux.neovim;
 
   clearBin = pkgsLinux.writeShellScriptBin "clear" ''
     printf '\033[H\033[2J'

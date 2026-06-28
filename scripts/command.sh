@@ -34,7 +34,7 @@ fi
 if [ -z "$PG_HISTORY" ];then
   PG_HISTORY="$HOME/.psql_history"
 fi
-touch "$PG_HISTORY"
+[ -e "$PG_HISTORY" ] || touch "$PG_HISTORY"
 MOUNT_PGHISTORY="-v$PG_HISTORY:/root/.psql_history"
 
 if [ -z "$PG_CERTFOLDER" ];then

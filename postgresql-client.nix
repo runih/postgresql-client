@@ -11,9 +11,10 @@ let
       };
       nativeBuildInputs = (with pkgs.buildPackages; [ bison flex perl pkg-config ]);
       buildInputs = [ pkgs.icu pkgs.readline pkgs.zlib pkgs.openssl ];
-      configureFlags = [ "--without-server" "--with-openssl" ];
+      configureFlags = [ "--without-server" "--with-openssl" "--disable-thread-safety" ];
       preConfigure = ''
         export ac_cv_file__dev_urandom=yes
+        export CFLAGS="''${CFLAGS:+$CFLAGS }-std=c17"
       '';
       buildPhase = ''
         make -C src/interfaces/libpq
