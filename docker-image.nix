@@ -71,24 +71,30 @@ let
     cp ${./neovim/init.lua} $out/root/.config/nvim/init.lua
   '';
 
-  # On macOS, fetch and patch a pre-built aarch64 neovim tarball (cross-compiled
-  # binaries need their ELF interpreter set to the Nix-managed glibc path).
-  # On Linux, use nixpkgs' neovim built natively for the host architecture.
-  neovim = if isDarwin
-    then pkgs.runCommand "neovim-0.12.0" {
-      nativeBuildInputs = [ pkgs.patchelf ];
-    } ''
-      mkdir -p $out
-      tar -xzf ${pkgs.fetchurl {
-        url = "https://github.com/neovim/neovim/releases/download/v0.12.0/nvim-linux-arm64.tar.gz";
-        sha256 = "1cin6y5x6s6iy8y39mjbwhp6fdiv7vmv20n0x448yg7gw9xlw0l9";
-      }} --strip-components=1 -C $out
-      patchelf \
-        --set-interpreter "${pkgsLinux.glibc}/lib/ld-linux-aarch64.so.1" \
-        --set-rpath "${pkgsLinux.glibc}/lib:${pkgsLinux.stdenv.cc.cc.lib}/lib" \
-        $out/bin/nvim
-    ''
-    else pkgsLinux.neovim;
+  # Fetch and patch a pre-built neovim 0.12.3 tarball.
+  # On macOS we cross-compile to aarch64-linux, so we always fetch arm64.
+  # On Linux we fetch the tarball matching the host architecture.
+  nvimArch = if isDarwin || pkgs.stdenv.hostPlatform.isAarch64
+    then { triple = "aarch64"; tarball = "arm64"; interp = "ld-linux-aarch64.so.1"; }
+    else { triple = "x86_64";  tarball = "x86_64"; interp = "ld-linux-x86-64.so.2"; };
+
+  nvimSha256 = if nvimArch.tarball == "arm64"
+    then "1z53nypx91rvzrv923p80yy51660lm7j13fsarsb6wlwz9rsymg0"
+    else "0kbja1vj7r8n7d21agl1288w91fiprnf6fffph0vyq182i3vahf4";
+
+  neovim = pkgs.runCommand "neovim-0.12.3" {
+    nativeBuildInputs = [ pkgs.patchelf ];
+  } ''
+    mkdir -p $out
+    tar -xzf ${pkgs.fetchurl {
+      url = "https://github.com/neovim/neovim/releases/download/v0.12.3/nvim-linux-${nvimArch.tarball}.tar.gz";
+      sha256 = nvimSha256;
+    }} --strip-components=1 -C $out
+    patchelf \
+      --set-interpreter "${pkgsLinux.glibc}/lib/${nvimArch.interp}" \
+      --set-rpath "${pkgsLinux.glibc}/lib:${pkgsLinux.stdenv.cc.cc.lib}/lib" \
+      $out/bin/nvim
+  '';
 
   clearBin = pkgsLinux.writeShellScriptBin "clear" ''
     printf '\033[H\033[2J'
