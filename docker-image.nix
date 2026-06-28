@@ -11,6 +11,32 @@ let
     config.allowUnsupportedSystem = true;
   };
 
+  # The macOS tic tool (used during cross-compilation) emits hex-encoded
+  # subdirectory names (e.g. 78/xterm) to avoid case-collision on the
+  # case-insensitive macOS filesystem, but the cross-compiled Linux ncurses
+  # binary uses the standard single-char lookup (x/xterm).  This derivation
+  # converts the hex dirs to single-char dirs, skipping uppercase letters
+  # (A-Z) to stay collision-free on macOS — all common terminals start with
+  # a lowercase letter or digit anyway.
+  terminfo = pkgs.runCommand "terminfo" {} ''
+    mkdir -p $out/share/terminfo
+    for hexdir in ${pkgsLinux.ncurses}/share/terminfo/*/; do
+      hexname=$(basename "$hexdir")
+      # Only process 2-char hex names
+      echo "$hexname" | grep -qE '^[0-9a-f]{2}$' || continue
+      charcode=$((16#$hexname))
+      # Skip non-printable and uppercase A-Z (65-90) to avoid macOS conflicts
+      [ $charcode -lt 32 ] || [ $charcode -gt 126 ] && continue
+      [ $charcode -ge 65 ] && [ $charcode -le 90 ] && continue
+      char=$(printf "\\$(printf '%03o' $charcode)")
+      mkdir -p "$out/share/terminfo/$char"
+      for f in "$hexdir"*; do
+        [ -e "$f" ] || continue
+        cp -L "$f" "$out/share/terminfo/$char/" 2>/dev/null || cp "$f" "$out/share/terminfo/$char/"
+      done
+    done
+  '';
+
   localeArchive = pkgs.runCommand "locale-archive" {} ''
     mkdir -p $out/share/locale
     cp ${pkgsLinuxNative.glibcLocales.override {
@@ -64,15 +90,7 @@ let
   '';
 
   entrypoint = pkgsLinux.writeShellScriptBin "entrypoint" ''
-    # Fix \n → ^J in Docker: two complementary approaches.
-    # 1. stty sane sets onlcr on the container PTY so the PTY driver translates
-    #    \n → \r\n before Docker reads it.  Try stdin first, then /dev/tty.
     stty sane 2>/dev/null || stty sane </dev/tty 2>/dev/null || true
-    # 2. ESC[20h enables LNM (Linefeed/Newline Mode) in the terminal emulator
-    #    directly, so bare \n is treated as \r\n even if the PTY fix above fails
-    #    (e.g. Docker Desktop on macOS strips the extra \r between VM and host).
-    #    Only sent when stdout is a terminal so it doesn't pollute piped output.
-    [ -t 1 ] && printf '\033[20h'
 
     cd /data
 
@@ -102,12 +120,12 @@ pkgs.dockerTools.buildImage {
   tag = "latest";
   copyToRoot = pkgs.buildEnv {
     name = "image-root";
-    paths = allClientPackages ++ [ pkgsLinux.bash pkgsLinux.coreutils pkgsLinuxNative.gitMinimal pkgsLinuxNative.curl pkgsLinuxNative.ripgrep neovim nvimEditor clearBin resetBin entrypoint dataDir configFiles localeArchive ];
+    paths = allClientPackages ++ [ pkgsLinux.bash pkgsLinux.coreutils pkgsLinuxNative.gitMinimal pkgsLinuxNative.curl pkgsLinuxNative.ripgrep neovim clearBin resetBin nvimEditor entrypoint dataDir configFiles localeArchive terminfo ];
     pathsToLink = [ "/bin" "/data" "/tmp" "/root" "/share" ];
   };
   config = {
     Entrypoint = [ "/bin/entrypoint" ];
     WorkingDir = "/data";
-    Env = [ "PG_VERSION=18" "HOME=/root" "VIMRUNTIME=/share/nvim/runtime" "LANG=en_US.UTF-8" "LOCALE_ARCHIVE=/share/locale/locale-archive" ];
+    Env = [ "PG_VERSION=18" "HOME=/root" "VIMRUNTIME=/share/nvim/runtime" "LANG=en_US.UTF-8" "LOCALE_ARCHIVE=/share/locale/locale-archive" "TERMINFO=/share/terminfo" ];
   };
 }
