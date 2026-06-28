@@ -2,8 +2,7 @@
 \pset linestyle unicode
 \pset border 2
 \set COMP_KEYWORD_CASE upper
-\set PSQL_EDITOR "nvim"
+\set PSQL_EDITOR "nvim-psql"
 \pset pager off
 \timing
-\pset format wrapped
 \pset null '<null>'
