@@ -32,10 +32,10 @@ else
 fi
 
 if [ -z "$PG_HISTORY" ];then
-  MOUNT_PGHISTORY=""
-else
-  MOUNT_PGHISTORY="-v$PG_HISTORY:/root/.psql_history"
+  PG_HISTORY="$HOME/.psql_history"
 fi
+touch "$PG_HISTORY"
+MOUNT_PGHISTORY="-v$PG_HISTORY:/root/.psql_history"
 
 if [ -z "$PG_CERTFOLDER" ];then
   MOUNT_PGCERTFOLDER=""
@@ -106,11 +106,14 @@ MOUNTS="$MOUNT_DATA $MOUNT_PGPASS $MOUNT_PGHISTORY $MOUNT_PGCERTFOLDER"
 # Docker environments
 ENVS="$ENV_PGSSLCERT $ENV_PGSSLKEY $ENV_PGSSLROOTCERT $ENV_PGSSLMODE"
 
-docker $DOCKER_CONTEXT run -i"$TERMINAL" --rm --network "$PG_NETWORK" -v"$SOURCE_FOLDER/docker/vimrc:/root/.vimrc" -v"$SOURCE_FOLDER/docker/vim:/root/.vim" $MOUNTS $ENVS -e PG_VERSION="$PG_VERSION" okkara.net/postgresql-clients "$command" "$@"
+docker $DOCKER_CONTEXT run -i"$TERMINAL" --rm --network "$PG_NETWORK" -v"$SOURCE_FOLDER/docker/vimrc:/root/.vimrc" -v"$SOURCE_FOLDER/docker/vim:/root/.vim" -v"$SOURCE_FOLDER/neovim:/root/.config/nvim" $MOUNTS $ENVS -e PG_VERSION="$PG_VERSION" okkara.net/postgresql-clients "$command" "$@"
 error=$?
+# Docker's MakeRaw leaves the host terminal in raw mode on abnormal exit.
+stty sane 2>/dev/null || true
 if [ $error = 125 ];then
   echo "$error: Docker image missing"
   echo "Building Docker image with Nix (this may take a while)..."
   docker load < "$(nix-build "$SOURCE_FOLDER/docker-image.nix" --no-out-link)"
-  docker $DOCKER_CONTEXT run -i"$TERMINAL" --rm --network "$PG_NETWORK" -v"$SOURCE_FOLDER/docker/vimrc:/root/.vimrc" -v"$SOURCE_FOLDER/docker/vim:/root/.vim" $MOUNTS $ENVS -e PG_VERSION="$PG_VERSION" okkara.net/postgresql-clients "$command" "$@"
+  docker $DOCKER_CONTEXT run -i"$TERMINAL" --rm --network "$PG_NETWORK" -v"$SOURCE_FOLDER/docker/vimrc:/root/.vimrc" -v"$SOURCE_FOLDER/docker/vim:/root/.vim" -v"$SOURCE_FOLDER/neovim:/root/.config/nvim" $MOUNTS $ENVS -e PG_VERSION="$PG_VERSION" okkara.net/postgresql-clients "$command" "$@"
+  stty sane 2>/dev/null || true
 fi
