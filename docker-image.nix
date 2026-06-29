@@ -143,8 +143,12 @@ pkgs.dockerTools.buildImage {
   tag = "latest";
   copyToRoot = pkgs.buildEnv {
     name = "image-root";
-    paths = allClientPackages ++ [ pkgsLinux.bash pkgsLinux.coreutils pkgsLinuxNative.gitMinimal pkgsLinuxNative.curl pkgsLinuxNative.ripgrep neovim clearBin resetBin nvimEditor entrypoint dataDir configFiles localeArchive terminfo ];
-    pathsToLink = [ "/bin" "/data" "/tmp" "/root" "/share" ];
+    paths = allClientPackages ++ [ pkgsLinux.bash pkgsLinux.coreutils pkgsLinuxNative.gitMinimal pkgsLinuxNative.curl pkgsLinuxNative.ripgrep pkgsLinux.fakeNss neovim clearBin resetBin nvimEditor entrypoint dataDir configFiles localeArchive terminfo ];
+    # fakeNss provides /etc/passwd (root + nobody), /etc/group and
+    # /etc/nsswitch.conf so getpwuid(0) resolves to root. Without it the
+    # container has no passwd db, so omitting -U makes libpq's default-user
+    # lookup fail (and crash on older psql). /etc must be linked for it to apply.
+    pathsToLink = [ "/bin" "/data" "/tmp" "/root" "/share" "/etc" ];
   };
   config = {
     Entrypoint = [ "/bin/entrypoint" ];
