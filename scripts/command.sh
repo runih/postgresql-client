@@ -104,7 +104,7 @@ fi
 # Docker mounting points
 MOUNTS="$MOUNT_DATA $MOUNT_PGPASS $MOUNT_PGHISTORY $MOUNT_PGCERTFOLDER"
 # Docker environments
-ENVS="$ENV_PGSSLCERT $ENV_PGSSLKEY $ENV_PGSSLROOTCERT $ENV_PGSSLMODE -e PSQL_HISTORY=/root/.psql_history"
+ENVS="$ENV_PGSSLCERT $ENV_PGSSLKEY $ENV_PGSSLROOTCERT $ENV_PGSSLMODE -e PSQL_HISTORY=/root/.psql_history -e HOME=/root -e PSQLRC=/root/.psqlrc"
 
 docker $DOCKER_CONTEXT run -i"$TERMINAL" --rm --network "$PG_NETWORK" -v"$SOURCE_FOLDER/docker/vimrc:/root/.vimrc" -v"$SOURCE_FOLDER/docker/vim:/root/.vim" -v"$SOURCE_FOLDER/neovim:/root/.config/nvim" $MOUNTS $ENVS -e PG_VERSION="$PG_VERSION" okkara.net/postgresql-clients "$command" "$@"
 error=$?
