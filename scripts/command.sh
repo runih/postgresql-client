@@ -106,7 +106,7 @@ MOUNTS="$MOUNT_DATA $MOUNT_PGPASS $MOUNT_PGHISTORY $MOUNT_PGCERTFOLDER"
 # Docker environments
 ENVS="$ENV_PGSSLCERT $ENV_PGSSLKEY $ENV_PGSSLROOTCERT $ENV_PGSSLMODE -e PSQL_HISTORY=/root/.psql_history -e HOME=/root -e PSQLRC=/root/.psqlrc"
 
-docker $DOCKER_CONTEXT run -i"$TERMINAL" --rm --network "$PG_NETWORK" -v"$SOURCE_FOLDER/docker/vimrc:/root/.vimrc" -v"$SOURCE_FOLDER/docker/vim:/root/.vim" -v"$SOURCE_FOLDER/neovim:/root/.config/nvim" $MOUNTS $ENVS -e PG_VERSION="$PG_VERSION" okkara.net/postgresql-clients "$command" "$@"
+docker $DOCKER_CONTEXT run -i"$TERMINAL" --rm --network "$PG_NETWORK" -v"$SOURCE_FOLDER/neovim:/root/.config/nvim" $MOUNTS $ENVS -e PG_VERSION="$PG_VERSION" okkara.net/postgresql-clients "$command" "$@"
 error=$?
 # Docker's MakeRaw leaves the host terminal in raw mode on abnormal exit.
 stty sane 2>/dev/null || true
@@ -114,6 +114,6 @@ if [ $error = 125 ];then
   echo "$error: Docker image missing"
   echo "Building Docker image with Nix (this may take a while)..."
   docker load < "$(nix-build "$SOURCE_FOLDER/docker-image.nix" --no-out-link)"
-  docker $DOCKER_CONTEXT run -i"$TERMINAL" --rm --network "$PG_NETWORK" -v"$SOURCE_FOLDER/docker/vimrc:/root/.vimrc" -v"$SOURCE_FOLDER/docker/vim:/root/.vim" -v"$SOURCE_FOLDER/neovim:/root/.config/nvim" $MOUNTS $ENVS -e PG_VERSION="$PG_VERSION" okkara.net/postgresql-clients "$command" "$@"
+  docker $DOCKER_CONTEXT run -i"$TERMINAL" --rm --network "$PG_NETWORK" -v"$SOURCE_FOLDER/neovim:/root/.config/nvim" $MOUNTS $ENVS -e PG_VERSION="$PG_VERSION" okkara.net/postgresql-clients "$command" "$@"
   stty sane 2>/dev/null || true
 fi
