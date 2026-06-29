@@ -121,6 +121,7 @@ let
     shift
 
     export PSQL_EDITOR="nvim-psql"
+    export PSQL_HISTORY="/root/.psql_history"
     PG_VERSION="''${PG_VERSION:-18}"
 
     if [ "$PG_VERSION" = "96" ] && [ "$command" != "psql" ]; then
